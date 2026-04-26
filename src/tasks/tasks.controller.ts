@@ -26,6 +26,13 @@ export class TasksController {
     return this.tasksService.findAll(req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('count')
+  getCount(@Request() req) {
+    console.log('req.user:', req.user)
+    return this.tasksService.countByUser(req.user.id)
+  }
+
   @Get(':id')
   async getTask(@Param('id') id: string) {
     return this.tasksService.findOne(Number(id));

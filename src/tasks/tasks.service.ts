@@ -24,6 +24,12 @@ export class TasksService {
     return tasks;
   }
 
+  async countByUser(userId: number) {
+    const total = await this.tasksRepository.count({ where: { user: { id: userId } } })
+    const completed = await this.tasksRepository.count({ where: { user: { id: userId }, completed: true } })
+    return { total, completed, uncompleted: total - completed }
+  }
+
   async create(title: string, userId: number) {
     const task = this.tasksRepository.create({ title, user: { id: userId } });
     const saved = await this.tasksRepository.save(task);
