@@ -29,4 +29,8 @@ export class UsersService {
         if (!user) return null;
         return this.usersRepository.update(id, body)
     }
+
+    async updatePassword(id: number, hashedPassword: string) {
+        return this.usersRepository.update(id, { password: hashedPassword })
+    }
 }
