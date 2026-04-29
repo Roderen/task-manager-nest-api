@@ -6,12 +6,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {MailModule} from "../mail/mail.module";
+import {RedisModule} from "../redis/redis.module";
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     ConfigModule,
+    MailModule,
+    RedisModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

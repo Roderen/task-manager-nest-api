@@ -11,10 +11,14 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from './auth.service';
 import {RegisterDto} from "./dto/register.dto";
 import {LoginDto} from "./dto/login.dto";
+import {ChangePasswordDto} from "./dto/change-password.dto";
+import {ChangePasswordConfirmDto} from "./dto/change-password-confirm.dto";
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+      private authService: AuthService,
+  ) {}
 
   @Post('register')
   register(@Body() body: RegisterDto) {
@@ -39,5 +43,17 @@ export class AuthController {
   @Get('checkToken')
   me(@Request() req) {
     return req.user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password/request')
+  changePasswordRequest(@Body() body: ChangePasswordDto, @Request() req) {
+    return this.authService.changePasswordRequest(req.user.id, body.newPassword)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password/confirm')
+  changePasswordConfirm(@Body() body: ChangePasswordConfirmDto, @Request() req) {
+    return this.authService.changePasswordConfirm(req.user.id, body.code)
   }
 }
