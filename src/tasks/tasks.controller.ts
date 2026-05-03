@@ -7,7 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
-  Request,
+  Request, Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -22,8 +22,14 @@ export class TasksController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @Get()
-  getTasks(@Request() req) {
-    return this.tasksService.findAll(req.user.id);
+  getTasks(
+      @Query('page') page: string = '1',
+      @Query('limit') limit: string = '10',
+      @Query('completed') completed: string,
+      @Request() req
+  ) {
+    const completedBool = completed === 'true' ? true : completed === 'false' ? false : undefined
+    return this.tasksService.findAll(req.user.id, Number(page), Number(limit), completedBool)
   }
 
   @UseGuards(JwtAuthGuard)
