@@ -9,13 +9,13 @@ REST API for task management with JWT authentication and Redis caching.
 - JWT authentication
 - Docker
 
-## Running with Docker (recommended)
+## Running with Docker
 
 ### Requirements
 - Docker and Docker Compose
 
 ### Setup
-$ git clone <repo> \
+$ git clone https://github.com/Roderen/task-manager-nest-api.git \
 $ cd task-manager \
 $ cp .env.example .env \
 $ docker compose up --build
@@ -32,25 +32,17 @@ $ docker compose up --build
 ### Setup
 $ npm install
 
-### Start
-# development with watch mode
+## Start
+### development with watch mode
+$ docker compose up --build
+$ docker stop task-manager-app-1
 $ npm run start:dev
 
-# production
+# Production
 $ npm run start:prod
 
 ## Endpoints
-
-### Auth
-- POST /auth/register — register { email, password }
-- POST /auth/login — login, returns JWT token
-
-### Tasks (require Bearer token)
-- GET /tasks — list tasks for current user
-- GET /tasks/:id — get single task
-- POST /tasks — create task { title }
-- PUT /tasks/:id — update task { completed }
-- DELETE /tasks/:id — delete task
+http://localhost:3000/api
 
 ## Environment Variables
 Copy .env.example to .env and fill in the values. \
