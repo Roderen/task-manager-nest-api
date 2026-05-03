@@ -12,16 +12,32 @@ export class TasksService {
     private redisService: RedisService,
   ) {}
 
-  async findAll(userId: number) {
-    const cacheKey = `tasks_user_${userId}`;
-    const cached = await this.redisService.get(cacheKey);
-    if (cached) return cached;
+  async findAll(userId: number, page: number = 1, limit: number = 10, completed?: boolean) {
+    const cacheKey = `tasks_user_${userId}_page_${page}_limit_${limit}_completed_${completed}`
 
-    const tasks = await this.tasksRepository.find({
-      where: { user: { id: userId } },
-    });
-    await this.redisService.set(cacheKey, tasks);
-    return tasks;
+    const cached = await this.redisService.get(cacheKey)
+    if (cached) return cached
+
+    const where: any = { user: { id: userId } }
+    if (completed !== undefined) where.completed = completed
+
+    const [tasks, total] = await this.tasksRepository.findAndCount({
+      where,
+      take: limit,
+      skip: (page - 1) * limit,
+      order: { createdAt: 'DESC' }
+    })
+
+    const result = {
+      data: tasks,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+
+    await this.redisService.set(cacheKey, result)
+    return result
   }
 
   async countByUser(userId: number) {
@@ -33,7 +49,7 @@ export class TasksService {
   async create(title: string, userId: number) {
     const task = this.tasksRepository.create({ title, user: { id: userId } });
     const saved = await this.tasksRepository.save(task);
-    await this.redisService.del(`tasks_user_${userId}`);
+    await this.redisService.delByPattern(`tasks_user_${userId}_*`)
     return saved;
   }
 
@@ -48,13 +64,13 @@ export class TasksService {
     if (completed !== undefined) task.completed = completed;
     if (title !== undefined) task.title = title;
     const result = await this.tasksRepository.save(task);
-    await this.redisService.del(`tasks_user_${userId}`);
+    await this.redisService.delByPattern(`tasks_user_${userId}_*`)
     return result;
   }
 
   async delete(id: number, userId: number) {
     const result = await this.tasksRepository.delete(id);
-    await this.redisService.del(`tasks_user_${userId}`);
+    await this.redisService.delByPattern(`tasks_user_${userId}_*`)
     return result;
   }
 
