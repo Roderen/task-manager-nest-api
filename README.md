@@ -1,13 +1,26 @@
-# Task Manager API
+# Task Manager API <a href="https://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" height="28px" alt="Nest Logo"/></a>
 
-REST API for task management with JWT authentication and Redis caching.
+A full-stack Task Manager REST API built with NestJS and TypeScript.
+Implements production-ready patterns including secure JWT authentication
+via httpOnly cookies, Redis caching with smart invalidation,
+two-factor password change confirmation via email, and pagination.
 
-## Tech Stack
-- NestJS + TypeScript
-- PostgreSQL + TypeORM
-- Redis (caching)
-- JWT authentication
-- Docker
+Designed as a portfolio project demonstrating full-stack development
+skills — from database design with PostgreSQL and TypeORM to
+containerization with Docker and E2E testing with Supertest.
+
+Frontend built with React, Redux Toolkit and TailwindCSS is available at - https://github.com/Roderen/task-manager-react
+
+## Features
+1. **JWT Authentication** - secure httpOnly cookie-based auth
+2. **User Registration & Login** - with bcrypt password hashing
+3. **Password Change with 2FA** - email confirmation code via Nodemailer
+4. **Redis Caching**
+5. **DTO Validation**
+6. **Swagger API Documentation**
+7. **PostgreSQL with TypeORM**
+8. **Docker**
+9. **E2E Testing**
 
 ## Running with Docker (recommended)
 
