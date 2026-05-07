@@ -7,7 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
-  Request, Query,
+  Request, Query, NotFoundException,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -39,9 +39,12 @@ export class TasksController {
     return this.tasksService.countByUser(req.user.id)
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async getTask(@Param('id') id: string) {
-    return this.tasksService.findOne(Number(id));
+  async getTask(@Param('id') id: string, @Request() req) {
+    const task = await this.tasksService.findOne(Number(id), req.user.id)
+    if (!task) throw new NotFoundException('Task not found')
+    return task
   }
 
   @UseGuards(JwtAuthGuard)

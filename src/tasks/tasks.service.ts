@@ -53,13 +53,8 @@ export class TasksService {
     return saved;
   }
 
-  async update(
-    id: number,
-    userId: number,
-    completed?: boolean,
-    title?: string,
-  ) {
-    const task = await this.tasksRepository.findOne({ where: { id } });
+  async update(id: number, userId: number, completed?: boolean, title?: string) {
+    const task = await this.tasksRepository.findOne({ where: { id, user: { id: userId } } });
     if (!task) return null;
     if (completed !== undefined) task.completed = completed;
     if (title !== undefined) task.title = title;
@@ -69,12 +64,14 @@ export class TasksService {
   }
 
   async delete(id: number, userId: number) {
+    const task = await this.tasksRepository.findOne({ where: { id, user: { id: userId } } })
+    if (!task) return null;
     const result = await this.tasksRepository.delete(id);
     await this.redisService.delByPattern(`tasks_user_${userId}_*`)
     return result;
   }
 
-  findOne(id: number) {
-    return this.tasksRepository.findOne({ where: { id } });
+  findOne(id: number, userId: number) {
+    return this.tasksRepository.findOne({ where: { id, user: { id: userId } } });
   }
 }
