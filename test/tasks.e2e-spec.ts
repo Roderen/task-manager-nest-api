@@ -2,7 +2,7 @@ import {INestApplication, ValidationPipe} from "@nestjs/common";
 import {DataSource} from "typeorm";
 import request from "supertest";
 import {Test, TestingModule} from "@nestjs/testing";
-import {AppModule} from "../src/app.module";
+import {AppModule} from "../src/app/app.module";
 import cookieParser from "cookie-parser";
 
 describe('Tasks E2E', () => {
