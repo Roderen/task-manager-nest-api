@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TasksModule } from './tasks/tasks.module';
+import { TasksModule } from '../tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './redis/redis.module';
+import { AuthModule } from '../auth/auth.module';
+import { RedisModule } from '../redis/redis.module';
+import {TerminusModule} from "@nestjs/terminus";
 
 @Module({
     imports: [
+        TerminusModule,
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],

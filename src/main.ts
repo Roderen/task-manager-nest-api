@@ -1,5 +1,5 @@
 import {NestFactory, Reflector} from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app/app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
 import cookieParser from "cookie-parser";
