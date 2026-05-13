@@ -21,6 +21,14 @@ Frontend built with React, Redux Toolkit and TailwindCSS is available at - https
 9. **PostgreSQL with TypeORM**
 10. **Docker**
 11. **E2E Testing**
+12. **WebSockets** - real-time update tasks via Socket.IO when a task needs help
+
+## WebSocket Events
+| Event | Description |
+|-------|-------------|
+| `helpNeeded` | Emitted when a task is marked as needsHelp: true |
+
+Connect to Socket.IO - `http://localhost:3000`.
 
 ## Running with Docker (recommended)
 

@@ -33,6 +33,15 @@ export class TasksController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('help')
+  getNeedsHelpTasks(
+      @Query('page') page: string = '1',
+      @Query('limit') limit: string = '10',
+  ) {
+    return this.tasksService.findAllNeedsHelp(Number(page), Number(limit));
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('count')
   getCount(@Request() req) {
     console.log('req.user:', req.user)
@@ -50,7 +59,7 @@ export class TasksController {
   @UseGuards(JwtAuthGuard)
   @Post()
   createTask(@Body() body: CreateTaskDto, @Request() req) {
-    return this.tasksService.create(body.title, req.user.id);
+    return this.tasksService.create(body.title, req.user.id, body.needsHelp);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,9 +71,10 @@ export class TasksController {
   ) {
     return this.tasksService.update(
       Number(id),
-      req.user.id,
-      body.completed,
-      body.title,
+        req.user.id,
+        body.completed,
+        body.title,
+        body.needsHelp
     );
   }
 

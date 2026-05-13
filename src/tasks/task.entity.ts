@@ -17,4 +17,7 @@ export class Task {
 
   @CreateDateColumn()
   createdAt: Date
+
+  @Column({ default: false })
+  needsHelp: boolean;
 }

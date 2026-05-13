@@ -1,8 +1,9 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Task } from './task.entity';
-import { RedisService } from '../redis/redis.service';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Repository} from 'typeorm';
+import {Task} from './task.entity';
+import {RedisService} from '../redis/redis.service';
+import {TaskGateway} from "./tasks.gateway";
 
 @Injectable()
 export class TasksService {
@@ -10,6 +11,7 @@ export class TasksService {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
     private redisService: RedisService,
+    private taskGateway: TaskGateway,
   ) {}
 
   async findAll(userId: number, page: number = 1, limit: number = 10, completed?: boolean) {
@@ -40,26 +42,53 @@ export class TasksService {
     return result
   }
 
+  async findAllNeedsHelp(page: number = 1, limit: number = 1) {
+    const where: any = {
+      needsHelp: true,
+    }
+
+    const [tasks, total] = await this.tasksRepository.findAndCount({
+      where,
+      take: limit,
+      skip: (page - 1) * limit,
+      order: { createdAt: 'DESC' },
+    })
+
+    return {
+      data: tasks,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
   async countByUser(userId: number) {
     const total = await this.tasksRepository.count({ where: { user: { id: userId } } })
     const completed = await this.tasksRepository.count({ where: { user: { id: userId }, completed: true } })
     return { total, completed, uncompleted: total - completed }
   }
 
-  async create(title: string, userId: number) {
-    const task = this.tasksRepository.create({ title, user: { id: userId } });
+  async create(title: string, userId: number, needsHelp?: boolean) {
+    const task = this.tasksRepository.create({ title, needsHelp, user: { id: userId } });
     const saved = await this.tasksRepository.save(task);
     await this.redisService.delByPattern(`tasks_user_${userId}_*`)
     return saved;
   }
 
-  async update(id: number, userId: number, completed?: boolean, title?: string) {
+  async update(id: number, userId: number, completed?: boolean, title?: string, needsHelp?: boolean) {
     const task = await this.tasksRepository.findOne({ where: { id, user: { id: userId } } });
     if (!task) return null;
     if (completed !== undefined) task.completed = completed;
     if (title !== undefined) task.title = title;
+    if (needsHelp !== undefined) task.needsHelp = needsHelp;
     const result = await this.tasksRepository.save(task);
     await this.redisService.delByPattern(`tasks_user_${userId}_*`)
+
+    if (task.needsHelp) {
+      this.taskGateway.notifyHelpNeeded(task)
+    }
+
     return result;
   }
 
