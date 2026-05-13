@@ -2,12 +2,10 @@
 
 A full-stack Task Manager REST API built with NestJS and TypeScript.
 Implements production-ready patterns including secure JWT authentication
-via httpOnly cookies, Redis caching with smart invalidation,
-two-factor password change confirmation via email, and pagination.
+via httpOnly cookies, Redis caching and password change with confirmation via email.
 
 Designed as a portfolio project demonstrating full-stack development
-skills — from database design with PostgreSQL and TypeORM to
-containerization with Docker and E2E testing with Supertest.
+skills.
 
 Frontend built with React, Redux Toolkit and TailwindCSS is available at - https://github.com/Roderen/task-manager-react
 
