@@ -20,16 +20,16 @@ export class AuthService {
   ) {}
 
   async register(email: string, password: string) {
-    const existing = await this.usersService.findByEmail(email);
-    if (existing) throw new BadRequestException('Email already exists');
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.usersService.create(email, hashedPassword);
-
-    return {
-      id: user.id,
-      email: user.email,
-    };
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10)
+      const user = await this.usersService.create(email, hashedPassword)
+      return { id: user.id, email: user.email }
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new BadRequestException('Email already exists')
+      }
+      throw error
+    }
   }
 
   async login(email: string, password: string, res: any) {

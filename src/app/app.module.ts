@@ -7,9 +7,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from '../redis/redis.module';
 import {TerminusModule} from "@nestjs/terminus";
+import {ThrottlerGuard, ThrottlerModule} from "@nestjs/throttler";
+import {APP_GUARD} from "@nestjs/core";
 
 @Module({
     imports: [
+        ThrottlerModule.forRoot({
+            throttlers: [
+                {
+                    ttl: 60000,
+                    limit: 5,
+                },
+            ],
+            errorMessage: 'Too many requests, please try again later',
+        }),
         TerminusModule,
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({

@@ -13,6 +13,7 @@ import {RegisterDto} from "./dto/register.dto";
 import {LoginDto} from "./dto/login.dto";
 import {ChangePasswordDto} from "./dto/change-password.dto";
 import {ChangePasswordConfirmDto} from "./dto/change-password-confirm.dto";
+import {Throttle, ThrottlerGuard} from "@nestjs/throttler";
 
 @Controller('auth')
 export class AuthController {
@@ -20,11 +21,14 @@ export class AuthController {
       private authService: AuthService,
   ) {}
 
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('register')
   register(@Body() body: RegisterDto) {
     return this.authService.register(body.email, body.password);
   }
 
+  @UseGuards(ThrottlerGuard)
   @Post('login')
   login(
     @Body() body: LoginDto,
@@ -45,6 +49,8 @@ export class AuthController {
     return req.user;
   }
 
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
   @Post('change-password/request')
   changePasswordRequest(@Body() body: ChangePasswordDto, @Request() req) {

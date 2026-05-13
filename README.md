@@ -15,12 +15,14 @@ Frontend built with React, Redux Toolkit and TailwindCSS is available at - https
 1. **JWT Authentication** - secure httpOnly cookie-based auth
 2. **User Registration & Login** - with bcrypt password hashing
 3. **Password Change with 2FA** - email confirmation code via Nodemailer
-4. **Redis Caching**
-5. **DTO Validation**
-6. **Swagger API Documentation**
-7. **PostgreSQL with TypeORM**
-8. **Docker**
-9. **E2E Testing**
+4. **Rate Limiting**
+5. **Redis Caching**
+6. **Request Validation**
+7. **Health Check**
+8. **Swagger API Documentation**
+9. **PostgreSQL with TypeORM**
+10. **Docker**
+11. **E2E Testing**
 
 ## Running with Docker (recommended)
 
