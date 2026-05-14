@@ -9,17 +9,15 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
-import {RegisterDto} from "./dto/register.dto";
-import {LoginDto} from "./dto/login.dto";
-import {ChangePasswordDto} from "./dto/change-password.dto";
-import {ChangePasswordConfirmDto} from "./dto/change-password-confirm.dto";
-import {Throttle, ThrottlerGuard} from "@nestjs/throttler";
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangePasswordConfirmDto } from './dto/change-password-confirm.dto';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-      private authService: AuthService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -30,10 +28,7 @@ export class AuthController {
 
   @UseGuards(ThrottlerGuard)
   @Post('login')
-  login(
-    @Body() body: LoginDto,
-    @Res({ passthrough: true }) res: any,
-  ) {
+  login(@Body() body: LoginDto, @Res({ passthrough: true }) res: any) {
     return this.authService.login(body.email, body.password, res);
   }
 
@@ -54,12 +49,18 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('change-password/request')
   changePasswordRequest(@Body() body: ChangePasswordDto, @Request() req) {
-    return this.authService.changePasswordRequest(req.user.id, body.newPassword)
+    return this.authService.changePasswordRequest(
+      req.user.id,
+      body.newPassword,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password/confirm')
-  changePasswordConfirm(@Body() body: ChangePasswordConfirmDto, @Request() req) {
-    return this.authService.changePasswordConfirm(req.user.id, body.code)
+  changePasswordConfirm(
+    @Body() body: ChangePasswordConfirmDto,
+    @Request() req,
+  ) {
+    return this.authService.changePasswordConfirm(req.user.id, body.code);
   }
 }

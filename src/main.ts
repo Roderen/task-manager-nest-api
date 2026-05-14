@@ -1,8 +1,11 @@
-import {NestFactory, Reflector} from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
-import cookieParser from "cookie-parser";
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,11 +13,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
-      .setTitle('Cats example')
-      .setDescription('The cats API description')
-      .setVersion('1.0')
-      .addTag('cats')
-      .build();
+    .setTitle('Cats example')
+    .setDescription('The cats API description')
+    .setVersion('1.0')
+    .addTag('cats')
+    .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
