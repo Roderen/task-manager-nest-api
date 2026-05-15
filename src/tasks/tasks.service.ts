@@ -85,7 +85,7 @@ export class TasksService {
     const result = await this.tasksRepository.save(task);
     await this.redisService.delByPattern(`tasks_user_${userId}_*`)
 
-    if (task.needsHelp) {
+    if (needsHelp === true) {
       this.taskGateway.notifyHelpNeeded(task)
     }
 
