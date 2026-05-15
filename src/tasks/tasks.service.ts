@@ -86,7 +86,11 @@ export class TasksService {
     await this.redisService.delByPattern(`tasks_user_${userId}_*`)
 
     if (needsHelp === true) {
-      this.taskGateway.notifyHelpNeeded(task)
+      this.taskGateway.notifyHelpNeeded(result, userId)
+    }
+
+    if (needsHelp === false) {
+      this.taskGateway.notifyHelpCancelNeeded(id)
     }
 
     return result;

@@ -45,7 +45,15 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  notifyHelpNeeded(task: any) {
-    this.server.emit('helpNeeded', task);
+  notifyHelpNeeded(task: any, userId: number) {
+    this.server.sockets.sockets.forEach((socket) => {
+      if (socket.data.user?.id !== userId) {
+        socket.emit('helpNeeded', task)
+      }
+    })
+  }
+
+  notifyHelpCancelNeeded(taskId: any) {
+    this.server.emit('helpCancelNeeded', taskId)
   }
 }
