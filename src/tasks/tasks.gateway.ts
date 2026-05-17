@@ -1,6 +1,6 @@
 import {
   OnGatewayConnection,
-  OnGatewayDisconnect,
+  OnGatewayDisconnect, SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -55,5 +55,15 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   notifyHelpCancelNeeded(taskId: any) {
     this.server.emit('helpCancelNeeded', taskId)
+  }
+
+  @SubscribeMessage('joinChat')
+  handleJoinChat(client: Socket, payload: { conversationId: number }) {
+    client.join(`chat:${payload.conversationId}`)
+    console.log(`User ${client.data.user?.id} joined chat ${payload.conversationId}`)
+  }
+
+  notifyNewMessage(message: any) {
+    this.server.to(`chat:${message.conversationId}`).emit('newMessage', message)
   }
 }

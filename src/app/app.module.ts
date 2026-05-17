@@ -9,6 +9,7 @@ import { RedisModule } from '../redis/redis.module';
 import {TerminusModule} from "@nestjs/terminus";
 import {ThrottlerGuard, ThrottlerModule} from "@nestjs/throttler";
 import {APP_GUARD} from "@nestjs/core";
+import {MessagesModule} from "../messages/messages.module";
 
 @Module({
     imports: [
@@ -40,6 +41,7 @@ import {APP_GUARD} from "@nestjs/core";
         RedisModule,
         TasksModule,
         AuthModule,
+        MessagesModule
     ],
     controllers: [AppController],
     providers: [AppService],
