@@ -59,9 +59,20 @@ export class MessagesService {
     }
 
     async getConversations(userId: number) {
-        return this.conversationMemberRepository.find({
-            where: { userId },
-            relations: ['conversation']
-        })
+        return this.conversationMemberRepository
+            .createQueryBuilder('cm')
+            .innerJoin(ConversationMember, 'other',
+                'other.conversationId = cm.conversationId AND other.userId != :userId',
+                { userId })
+            .innerJoin('other.user', 'user')
+            .select([
+                'cm.conversationId AS "conversationId"',
+                'user.id AS "interlocutorId"',
+                'user.name AS "interlocutorName"',
+                'user.avatar AS "interlocutorAvatar"',
+                'user.email AS "interlocutorEmail"',
+            ])
+            .where('cm.userId = :userId', { userId })
+            .getRawMany()
     }
 }

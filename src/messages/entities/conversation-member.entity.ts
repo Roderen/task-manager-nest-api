@@ -1,5 +1,6 @@
 import {Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, ManyToOne} from 'typeorm'
 import {Conversation} from "./conversation.entity";
+import {User} from "../../users/user.entity";
 
 @Entity()
 export class ConversationMember {
@@ -14,6 +15,8 @@ export class ConversationMember {
 
     @Column()
     userId: number
+
+    @ManyToOne(() => User) user: User
 
     @Column({ nullable: true })
     lastReadMessageId: number
