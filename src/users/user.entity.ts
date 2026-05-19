@@ -21,4 +21,10 @@ export class User {
 
     @CreateDateColumn()
     createdAt: Date
+
+    @Column({ default: false })
+    onlineStatus: boolean
+
+    @Column({ nullable: true })
+    lastSeen: Date
 }

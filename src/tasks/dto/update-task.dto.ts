@@ -11,4 +11,9 @@ export class UpdateTaskDto {
     @IsOptional()
     @IsBoolean()
     completed?: boolean
+
+    @ApiProperty({ required: false, example: true })
+    @IsOptional()
+    @IsBoolean()
+    needsHelp?: boolean
 }
