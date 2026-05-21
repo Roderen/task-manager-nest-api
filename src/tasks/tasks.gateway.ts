@@ -20,10 +20,10 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.headers.cookie
-      ?.split(';')
-      .find((c) => c.trim().startsWith('token='))
-      ?.split('=')[1];
+    const token = client.handshake.auth?.token ||
+        client.handshake.headers.cookie?.split(';')
+            .find(c => c.trim().startsWith('token='))
+            ?.split('=')[1]
 
     if (!token) {
       client.disconnect();

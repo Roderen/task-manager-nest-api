@@ -14,10 +14,14 @@ import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangePasswordConfirmDto } from './dto/change-password-confirm.dto';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import {JwtService} from "@nestjs/jwt";
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+      private authService: AuthService,
+      private jwtService: JwtService,
+  ) {}
 
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -66,5 +70,14 @@ export class AuthController {
     @Request() req,
   ) {
     return this.authService.changePasswordConfirm(req.user.id, body.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('ws-token')
+  getWsToken(@Request() req) {
+    return { token: this.jwtService.sign(
+          { id: req.user.id, email: req.user.email },
+          { expiresIn: '1h' }
+      )}
   }
 }
