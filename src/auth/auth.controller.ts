@@ -40,8 +40,9 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: any) {
     res.clearCookie('token', {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       secure: true,
+      domain: '.task-manager.lol',
     })
     return { success: true };
   }
