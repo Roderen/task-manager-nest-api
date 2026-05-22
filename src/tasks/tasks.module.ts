@@ -8,10 +8,11 @@ import {RedisModule} from "../redis/redis.module";
 import {TaskGateway} from "./tasks.gateway";
 import {JwtModule} from "@nestjs/jwt";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import {ConversationMember} from "../messages/entities/conversation-member.entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Task, User]),
+        TypeOrmModule.forFeature([Task, User, ConversationMember]),
         RedisModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -19,7 +20,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
                 secret: configService.getOrThrow('JWT_SECRET'),
             }),
             inject: [ConfigService],
-        })
+        }),
     ],
     controllers: [TasksController],
     providers: [TasksService, TaskGateway],
