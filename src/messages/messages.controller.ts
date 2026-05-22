@@ -25,8 +25,9 @@ export class MessagesController {
     @Get('conversationGetMessages')
     getConversationGetMessages(
         @Query('conversationId') conversationId: number,
+        @Request() req
     ) {
-        return this.messagesService.getMessages(Number(conversationId));
+        return this.messagesService.getMessages(Number(conversationId), req.user.id);
     }
 
     @UseGuards(JwtAuthGuard)

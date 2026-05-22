@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
-import {In, Repository} from "typeorm";
+import {In, MoreThan, Not, Repository} from "typeorm";
 import {ConversationMember} from "./entities/conversation-member.entity";
 import {Message} from "./entities/message.entity";
 import {Conversation} from "./entities/conversation.entity";
@@ -50,16 +50,36 @@ export class MessagesService {
         return message
     }
 
-    async getMessages(conversationId: number) {
-        return this.messagesRepository.find({
+    async getMessages(conversationId: number, userId: number) {
+        const conversationMember = await this.conversationMemberRepository.findOne({
+            where: { conversationId, userId }
+        });
+
+        if (!conversationMember) throw new NotFoundException('Conversation not found');
+
+        const interlocutorMember = await this.conversationMemberRepository.findOne({
+            where: { conversationId, userId: Not(userId) }
+        });
+
+        const messages = await this.messagesRepository.find({
             where: { conversationId },
             order: { createdAt: 'ASC' },
             relations: ['sender']
-        })
+        });
+
+        if (messages.length > 0) {
+            conversationMember.lastReadMessageId = messages[messages.length - 1].id;
+            await this.conversationMemberRepository.save(conversationMember);
+        }
+
+        return {
+            messages,
+            interlocutorLastReadMessageId: interlocutorMember?.lastReadMessageId ?? 0
+        };
     }
 
     async getConversations(userId: number) {
-        return this.conversationMemberRepository
+        const conversations = await this.conversationMemberRepository
             .createQueryBuilder('cm')
             .innerJoin(ConversationMember, 'other',
                 'other.conversationId = cm.conversationId AND other.userId != :userId',
@@ -67,6 +87,7 @@ export class MessagesService {
             .innerJoin('other.user', 'user')
             .select([
                 'cm.conversationId AS "conversationId"',
+                'cm.lastReadMessageId AS "lastReadMessageId"',
                 'user.id AS "interlocutorId"',
                 'user.name AS "interlocutorName"',
                 'user.avatar AS "interlocutorAvatar"',
@@ -74,5 +95,23 @@ export class MessagesService {
             ])
             .where('cm.userId = :userId', { userId })
             .getRawMany()
+
+        return Promise.all(
+            conversations.map(async (c) => ({
+                ...c,
+                unreadCount: await this.getUnreadCount(c.conversationId, userId, c.lastReadMessageId),
+                lastReadMessageId: undefined,
+            }))
+        )
+    }
+
+    async getUnreadCount(conversationId: number, userId: number, lastReadMessageId: number): Promise<number> {
+        return this.messagesRepository.count({
+            where: {
+                conversationId,
+                senderId: Not(userId),
+                id: MoreThan(lastReadMessageId ?? 0),
+            },
+        });
     }
 }
