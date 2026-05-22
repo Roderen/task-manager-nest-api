@@ -85,4 +85,12 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(`user:${receiver.userId}`).emit('gotNewMessage', message)
     }
   }
+
+  @SubscribeMessage('typing')
+  handleTyping(client: Socket, payload: { conversationId: number }) {
+    client.to(`chat:${payload.conversationId}`).emit('userTyping', {
+      userId: client.data.user?.id,
+      conversationId: payload.conversationId
+    })
+  }
 }
