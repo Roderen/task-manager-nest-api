@@ -1,4 +1,4 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {In, MoreThan, Not, Repository} from "typeorm";
 import {ConversationMember} from "./entities/conversation-member.entity";
@@ -113,5 +113,17 @@ export class MessagesService {
                 id: MoreThan(lastReadMessageId ?? 0),
             },
         });
+    }
+
+    async deleteMessage(messageId: number, userId: number) {
+        const message = await this.messagesRepository.findOne({
+            where: { id: messageId }
+        })
+
+        if (!message) throw new NotFoundException('Message not found')
+        if (message.senderId !== userId) throw new ForbiddenException('Not your message')
+
+        message.deletedAt = new Date()
+        return this.messagesRepository.save(message)
     }
 }
