@@ -3,6 +3,7 @@ import type { Request } from 'express';
 
 export interface AuthUser {
   id: number;
+  email: string;
 }
 
 export const CurrentUser = createParamDecorator(

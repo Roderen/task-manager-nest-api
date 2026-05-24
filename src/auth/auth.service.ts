@@ -57,7 +57,7 @@ export class AuthService {
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      domain: '.task-manager.lol',
+      domain: process.env.COOKIE_DOMAIN ?? 'localhost',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
