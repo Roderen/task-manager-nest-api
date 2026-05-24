@@ -6,9 +6,15 @@ import {
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto'
-import {RedisService} from "../redis/redis.service";
-import {MailService} from "../mail/mail.service";
+import * as crypto from 'crypto';
+import { RedisService } from '../redis/redis.service';
+import { MailService } from '../mail/mail.service';
+import type { Response } from 'express';
+
+interface RedisChangePasswordConfirm {
+  code: number;
+  newPassword: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -21,22 +27,26 @@ export class AuthService {
 
   async register(email: string, password: string) {
     try {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const user = await this.usersService.create(email, hashedPassword)
-      return { id: user.id, email: user.email }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await this.usersService.create(email, hashedPassword);
+      return { id: user.id, email: user.email };
     } catch (error) {
-      if (error.code === '23505') {
-        throw new BadRequestException('Email already exists')
+      if (
+        error instanceof Error &&
+        (error as { code?: string }).code === '23505'
+      ) {
+        throw new BadRequestException('Email already exists');
       }
-      throw error
+      throw error;
     }
   }
 
-  async login(email: string, password: string, res: any) {
+  async login(email: string, password: string, res: Response) {
     const user = await this.usersService.findByEmail(email);
-    const fakeHash = '$2b$10$abcdefghijklmnopqrstuuABC123456789012345678901234567890'
-    const valid = await bcrypt.compare(password, user?.password ?? fakeHash)
-    if (!user || !valid) throw new UnauthorizedException('Invalid credentials')
+    const fakeHash =
+      '$2b$10$abcdefghijklmnopqrstuuABC123456789012345678901234567890';
+    const valid = await bcrypt.compare(password, user?.password ?? fakeHash);
+    if (!user || !valid) throw new UnauthorizedException('Invalid credentials');
 
     const token = this.jwtService.sign({
       id: user.id,
@@ -49,7 +59,7 @@ export class AuthService {
       secure: true,
       domain: '.task-manager.lol',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    });
 
     return { success: true };
   }
@@ -59,24 +69,31 @@ export class AuthService {
     if (!user) return null;
 
     const code = crypto.randomInt(100000, 999999);
-    await this.redisService.set(`change-password:${id}`, {code, newPassword}, 300);
+    await this.redisService.set(
+      `change-password:${id}`,
+      { code, newPassword },
+      300,
+    );
 
     await this.mailService.sendConfirmationCode(user.email, code.toString());
-    return { message: 'Code sent to your email' }
+    return { message: 'Code sent to your email' };
   }
 
   async changePasswordConfirm(id: number, code: string) {
-    const redisData = await this.redisService.get(`change-password:${id}`);
-    if (!redisData || redisData.code !== Number(code)) throw new UnauthorizedException('Invalid code or code expired');
+    const redisData = (await this.redisService.get(
+      `change-password:${id}`,
+    )) as RedisChangePasswordConfirm;
+    if (!redisData || redisData.code !== Number(code))
+      throw new UnauthorizedException('Invalid code or code expired');
 
     const hashedPassword = await bcrypt.hash(redisData.newPassword, 10);
-    await this.usersService.updatePassword(id, hashedPassword)
+    await this.usersService.updatePassword(id, hashedPassword);
 
     await this.redisService.del(`change-password:${id}`);
 
     return {
       message: 'Password changed successfully',
-      success: true
+      success: true,
     };
   }
 }

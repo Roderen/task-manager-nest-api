@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Res,
-  Get,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Post, Res, Get, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -14,7 +6,9 @@ import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangePasswordConfirmDto } from './dto/change-password-confirm.dto';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import {JwtService} from "@nestjs/jwt";
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -32,12 +26,12 @@ export class AuthController {
 
   @UseGuards(ThrottlerGuard)
   @Post('login')
-  login(@Body() body: LoginDto, @Res({ passthrough: true }) res: any) {
+  login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(body.email, body.password, res);
   }
 
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: any) {
+  logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('token', {
       httpOnly: true,
       sameSite: 'lax',
@@ -49,28 +43,28 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('checkToken')
-  me(@Request() req) {
-    return req.user;
+  me(@CurrentUser() user: AuthUser) {
+    return user;
   }
 
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
   @Post('change-password/request')
-  changePasswordRequest(@Body() body: ChangePasswordDto, @Request() req) {
-    return this.authService.changePasswordRequest(
-      req.user.id,
-      body.newPassword,
-    );
+  changePasswordRequest(
+    @Body() body: ChangePasswordDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.authService.changePasswordRequest(user.id, body.newPassword);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password/confirm')
   changePasswordConfirm(
     @Body() body: ChangePasswordConfirmDto,
-    @Request() req,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.authService.changePasswordConfirm(req.user.id, body.code);
+    return this.authService.changePasswordConfirm(user.id, body.code);
   }
 
   @UseGuards(JwtAuthGuard)

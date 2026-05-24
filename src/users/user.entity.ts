@@ -1,30 +1,36 @@
-import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn} from 'typeorm'
-import {Exclude} from "class-transformer";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ unique: true })
-    email: string
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    @Exclude()
-    password: string
+  @Column()
+  @Exclude()
+  password: string;
 
-    @Column({nullable: true})
-    name: string
+  @Column({ nullable: true })
+  name: string;
 
-    @Column({nullable: true})
-    avatar: string
+  @Column({ nullable: true })
+  avatar: string;
 
-    @CreateDateColumn()
-    createdAt: Date
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column({ default: false })
-    onlineStatus: boolean
+  @Column({ default: false })
+  onlineStatus: boolean;
 
-    @Column({ nullable: true })
-    lastSeen: Date
+  @Column({ nullable: true })
+  lastSeen: Date;
 }
+
