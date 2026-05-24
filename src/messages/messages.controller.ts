@@ -7,6 +7,7 @@ import {
   Query,
   Delete,
   Param,
+  Put,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -61,5 +62,15 @@ export class MessagesController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.messagesService.deleteMessage(messageId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('editConversationMessage/:messageId')
+  editConversationMessage(
+    @Param('messageId') messageId: number,
+    @Body('text') text: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.messagesService.editMessage(user.id, messageId, text);
   }
 }

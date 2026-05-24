@@ -160,4 +160,18 @@ export class MessagesService {
     message.deletedAt = new Date();
     return this.messagesRepository.save(message);
   }
+
+  async editMessage(userId: number, messageId: number, text: string) {
+    const message = await this.messagesRepository.findOne({
+      where: { id: messageId, senderId: userId },
+    });
+
+    if (!message) throw new NotFoundException('Message not found');
+    if (message.senderId !== userId)
+      throw new ForbiddenException('Not your message');
+
+    message.text = text;
+    message.editedAt = new Date();
+    return this.messagesRepository.save(message);
+  }
 }
