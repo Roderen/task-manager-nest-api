@@ -1,26 +1,32 @@
-import {Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, ManyToOne} from 'typeorm'
-import {Conversation} from "./conversation.entity";
-import {User} from "../../users/user.entity";
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+} from 'typeorm';
+import { Conversation } from './conversation.entity';
+import { User } from '../../users/user.entity';
 
 @Entity()
 export class ConversationMember {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    conversationId: number
+  @Column()
+  conversationId: number;
 
-    @ManyToOne(() => Conversation)
-    conversation: Conversation
+  @ManyToOne(() => Conversation)
+  conversation: Conversation;
 
-    @Column()
-    userId: number
+  @Column()
+  userId: number;
 
-    @ManyToOne(() => User) user: User
+  @ManyToOne(() => User) user: User;
 
-    @Column({ nullable: true })
-    lastReadMessageId: number
+  @Column({ nullable: true })
+  lastReadMessageId: number;
 
-    @CreateDateColumn()
-    joinedAt: Date
+  @CreateDateColumn()
+  joinedAt: Date;
 }

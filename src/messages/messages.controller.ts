@@ -1,18 +1,17 @@
 import {
   Body,
-  Request,
   Controller,
   Post,
   UseGuards,
   Get,
   Query,
-  Put,
   Delete,
   Param,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { AuthUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('messages')
 export class MessagesController {
@@ -20,22 +19,22 @@ export class MessagesController {
 
   @UseGuards(JwtAuthGuard)
   @Post('conversation')
-  createConversation(@Body() body: { receiverId: number }, @Request() req) {
-    return this.messagesService.createConversation(
-      req.user.id,
-      body.receiverId,
-    );
+  createConversation(
+    @Body() body: { receiverId: number },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.messagesService.createConversation(user.id, body.receiverId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('conversationSendMessage')
   createConversationSendMessage(
     @Body() body: { conversationId: number; text: string },
-    @Request() req,
+    @CurrentUser() user: AuthUser,
   ) {
     return this.messagesService.sendMessage(
       body.conversationId,
-      req.user.id,
+      user.id,
       body.text,
     );
   }
@@ -44,26 +43,23 @@ export class MessagesController {
   @Get('conversationGetMessages')
   getConversationGetMessages(
     @Query('conversationId') conversationId: number,
-    @Request() req,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.messagesService.getMessages(
-      Number(conversationId),
-      req.user.id,
-    );
+    return this.messagesService.getMessages(Number(conversationId), user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('getConversations')
-  getConversations(@Request() req) {
-    return this.messagesService.getConversations(req.user.id);
+  getConversations(@CurrentUser() user: AuthUser) {
+    return this.messagesService.getConversations(user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('deleteConversationMessage/:messageId')
   deleteConversationMessage(
     @Param('messageId') messageId: number,
-    @Request() req,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.messagesService.deleteMessage(messageId, req.user.id);
+    return this.messagesService.deleteMessage(messageId, user.id);
   }
 }
