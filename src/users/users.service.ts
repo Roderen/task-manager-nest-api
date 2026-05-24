@@ -24,10 +24,11 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id: id } });
   }
 
-  async updateMe(id: number, body: UpdateUserDto) {
+  async updateMe(id: number, body: UpdateUserDto): Promise<User | null> {
     const user = await this.usersRepository.findOne({ where: { id: id } });
     if (!user) return null;
-    return this.usersRepository.update(id, body);
+    await this.usersRepository.update(id, body);
+    return this.usersRepository.findOne({ where: { id } });
   }
 
   async updatePassword(id: number, hashedPassword: string) {
