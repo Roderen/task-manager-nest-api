@@ -12,7 +12,10 @@ import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+      private authService: AuthService,
+      private jwtService: JwtService,
+  ) {}
 
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -29,7 +32,12 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+      domain: '.task-manager.lol',
+    })
     return { success: true };
   }
 
@@ -57,5 +65,14 @@ export class AuthController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.authService.changePasswordConfirm(user.id, body.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('ws-token')
+  getWsToken(@Request() req) {
+    return { token: this.jwtService.sign(
+          { id: req.user.id, email: req.user.email },
+          { expiresIn: '1h' }
+      )}
   }
 }
