@@ -89,7 +89,7 @@ export class TasksController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  deleteTask(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+  deleteTask(@Param('id') id: number, @CurrentUser() user: AuthUser) {
     return this.tasksService.delete(Number(id), user.id);
   }
 }
