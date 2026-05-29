@@ -172,6 +172,7 @@ export class MessagesService {
 
     message.text = text;
     message.editedAt = new Date();
+    this.taskGateway.notifyMessageEdited(message);
     return this.messagesRepository.save(message);
   }
 }

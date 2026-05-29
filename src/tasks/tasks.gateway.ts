@@ -116,4 +116,10 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
       conversationId: payload.conversationId,
     });
   }
+
+  notifyMessageEdited(message: Message) {
+    this.server
+      .to(`chat:${message.conversationId}`)
+      .emit('messageEdited', message);
+  }
 }
