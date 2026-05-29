@@ -13,6 +13,7 @@ import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/common/decorators/current-user.decorator';
+import { CursorPaginationDto } from './dto/cursor-pagination.dto';
 
 @Controller('messages')
 export class MessagesController {
@@ -44,9 +45,14 @@ export class MessagesController {
   @Get('conversationGetMessages')
   getConversationGetMessages(
     @Query('conversationId') conversationId: number,
+    @Query() CursorPaginationDto: CursorPaginationDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.messagesService.getMessages(Number(conversationId), user.id);
+    return this.messagesService.getMessages(
+      Number(conversationId),
+      user.id,
+      CursorPaginationDto,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
