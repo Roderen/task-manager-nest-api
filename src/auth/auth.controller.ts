@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Res, Get, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Res,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -8,7 +16,7 @@ import { ChangePasswordConfirmDto } from './dto/change-password-confirm.dto';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -27,15 +35,11 @@ export class AuthController {
     return this.authService.login(body.email, body.password, res);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('token', {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
-      domain: '.task-manager.lol',
-    });
-    return { success: true };
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = (req.cookies as Record<string, string>)?.token;
+    return this.authService.logout(token, res);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -16,6 +16,12 @@ interface RedisChangePasswordConfirm {
   newPassword: string;
 }
 
+interface JwtPayload {
+  id: number;
+  email: string;
+  exp: number;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -59,6 +65,27 @@ export class AuthService {
       secure: true,
       domain: process.env.COOKIE_DOMAIN ?? 'localhost',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { success: true };
+  }
+
+  async logout(token: string, res: Response) {
+    try {
+      const decoded = this.jwtService.verify<JwtPayload>(token);
+      const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+      if (ttl > 0) {
+        await this.redisService.set(`blacklist:${token}`, '1', ttl);
+      }
+    } catch {
+      // clean cookies
+    }
+
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+      domain: process.env.COOKIE_DOMAIN ?? 'localhost',
     });
 
     return { success: true };
