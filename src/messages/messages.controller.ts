@@ -79,4 +79,14 @@ export class MessagesController {
   ) {
     return this.messagesService.editMessage(user.id, messageId, text);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('markAsRead')
+  async markAsRead(
+    @Body('conversationId') conversationId: number,
+    @Body('messageId') messageId: number,
+    @CurrentUser() user: AuthUser,
+  ): Promise<void> {
+    return this.messagesService.markAsRead(conversationId, user.id, messageId);
+  }
 }

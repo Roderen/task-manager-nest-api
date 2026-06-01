@@ -1,4 +1,4 @@
-import { IsOptional, IsNumber, IsInt, Min } from 'class-validator';
+import { IsOptional, IsInt, Min, Max } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class CursorPaginationDto {
@@ -9,7 +9,9 @@ export class CursorPaginationDto {
   cursor?: number; // Receives the `createdAt` of the last item on the previous page
 
   @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
-  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  @IsInt()
+  @Min(1)
+  @Max(100)
   limit?: number = 10;
 }

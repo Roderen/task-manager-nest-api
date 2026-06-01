@@ -75,17 +75,15 @@ export class MessagesService {
   async getMessages(
     conversationId: number,
     userId: number,
-    cursorPaginationDto: CursorPaginationDto,
+    dto: CursorPaginationDto,
   ) {
-    const { cursor, limit } = cursorPaginationDto;
-    const take = limit ?? 10;
+    const { cursor, limit } = dto;
+    const take = limit ?? 20;
 
     const conversationMember = await this.conversationMemberRepository.findOne({
       where: { conversationId, userId },
     });
-
-    if (!conversationMember)
-      throw new NotFoundException('Conversation not found');
+    if (!conversationMember) throw new ForbiddenException('Access denied');
 
     const interlocutorMember = await this.conversationMemberRepository.findOne({
       where: { conversationId, userId: Not(userId) },
@@ -93,7 +91,8 @@ export class MessagesService {
 
     const queryBuilder = this.messagesRepository
       .createQueryBuilder('message')
-      .orderBy('message.createdAt', 'DESC')
+      .where('message.conversationId = :conversationId', { conversationId })
+      .orderBy('message.id', 'DESC')
       .limit(take + 1);
 
     if (cursor) {
@@ -101,19 +100,14 @@ export class MessagesService {
     }
 
     const messages = await queryBuilder.getMany();
-
     const hasMore = messages.length > take;
-    if (hasMore) {
-      messages.pop();
-    }
+    if (hasMore) messages.pop();
 
     messages.reverse();
 
-    const nextCursor = hasMore ? messages[0].id : null;
-
     return {
-      messages: messages,
-      nextCursor,
+      messages,
+      nextCursor: hasMore ? messages[0].id : null,
       interlocutorMember,
     };
   }
@@ -192,5 +186,17 @@ export class MessagesService {
     message.editedAt = new Date();
     this.taskGateway.notifyMessageEdited(message);
     return this.messagesRepository.save(message);
+  }
+
+  async markAsRead(conversationId: number, userId: number, messageId: number) {
+    await this.conversationMemberRepository
+      .createQueryBuilder()
+      .update()
+      .set({ lastReadMessageId: messageId })
+      .where(
+        'conversationId = :conversationId AND userId = :userId AND (lastReadMessageId IS NULL OR lastReadMessageId < :messageId)',
+        { conversationId, userId, messageId },
+      )
+      .execute();
   }
 }
