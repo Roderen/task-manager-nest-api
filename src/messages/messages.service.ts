@@ -9,6 +9,7 @@ import { ConversationMember } from './entities/conversation-member.entity';
 import { Message } from './entities/message.entity';
 import { Conversation } from './entities/conversation.entity';
 import { TaskGateway } from '../tasks/tasks.gateway';
+import { CursorPaginationDto } from './dto/cursor-pagination.dto';
 
 interface ConversationRaw {
   conversationId: number;
@@ -71,32 +72,43 @@ export class MessagesService {
     return message;
   }
 
-  async getMessages(conversationId: number, userId: number) {
+  async getMessages(
+    conversationId: number,
+    userId: number,
+    dto: CursorPaginationDto,
+  ) {
+    const { cursor, limit } = dto;
+    const take = limit ?? 20;
+
     const conversationMember = await this.conversationMemberRepository.findOne({
       where: { conversationId, userId },
     });
-
-    if (!conversationMember)
-      throw new NotFoundException('Conversation not found');
+    if (!conversationMember) throw new ForbiddenException('Access denied');
 
     const interlocutorMember = await this.conversationMemberRepository.findOne({
       where: { conversationId, userId: Not(userId) },
     });
 
-    const messages = await this.messagesRepository.find({
-      where: { conversationId },
-      order: { createdAt: 'ASC' },
-      relations: ['sender'],
-    });
+    const queryBuilder = this.messagesRepository
+      .createQueryBuilder('message')
+      .where('message.conversationId = :conversationId', { conversationId })
+      .orderBy('message.id', 'DESC')
+      .limit(take + 1);
 
-    if (messages.length > 0) {
-      conversationMember.lastReadMessageId = messages[messages.length - 1].id;
-      await this.conversationMemberRepository.save(conversationMember);
+    if (cursor) {
+      queryBuilder.andWhere('message.id < :cursor', { cursor: +cursor });
     }
+
+    const messages = await queryBuilder.getMany();
+    const hasMore = messages.length > take;
+    if (hasMore) messages.pop();
+
+    messages.reverse();
 
     return {
       messages,
-      interlocutorLastReadMessageId: interlocutorMember?.lastReadMessageId ?? 0,
+      nextCursor: hasMore ? messages[0].id : null,
+      interlocutorMember,
     };
   }
 
@@ -159,5 +171,32 @@ export class MessagesService {
 
     message.deletedAt = new Date();
     return this.messagesRepository.save(message);
+  }
+
+  async editMessage(userId: number, messageId: number, text: string) {
+    const message = await this.messagesRepository.findOne({
+      where: { id: messageId, senderId: userId },
+    });
+
+    if (!message) throw new NotFoundException('Message not found');
+    if (message.senderId !== userId)
+      throw new ForbiddenException('Not your message');
+
+    message.text = text;
+    message.editedAt = new Date();
+    this.taskGateway.notifyMessageEdited(message);
+    return this.messagesRepository.save(message);
+  }
+
+  async markAsRead(conversationId: number, userId: number, messageId: number) {
+    await this.conversationMemberRepository
+      .createQueryBuilder()
+      .update()
+      .set({ lastReadMessageId: messageId })
+      .where(
+        'conversationId = :conversationId AND userId = :userId AND (lastReadMessageId IS NULL OR lastReadMessageId < :messageId)',
+        { conversationId, userId, messageId },
+      )
+      .execute();
   }
 }

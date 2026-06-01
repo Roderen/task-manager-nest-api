@@ -7,11 +7,13 @@ import {
   Query,
   Delete,
   Param,
+  Put,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/common/decorators/current-user.decorator';
+import { CursorPaginationDto } from './dto/cursor-pagination.dto';
 
 @Controller('messages')
 export class MessagesController {
@@ -43,9 +45,14 @@ export class MessagesController {
   @Get('conversationGetMessages')
   getConversationGetMessages(
     @Query('conversationId') conversationId: number,
+    @Query() CursorPaginationDto: CursorPaginationDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.messagesService.getMessages(Number(conversationId), user.id);
+    return this.messagesService.getMessages(
+      Number(conversationId),
+      user.id,
+      CursorPaginationDto,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -61,5 +68,25 @@ export class MessagesController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.messagesService.deleteMessage(messageId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('editConversationMessage/:messageId')
+  editConversationMessage(
+    @Param('messageId') messageId: number,
+    @Body('text') text: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.messagesService.editMessage(user.id, messageId, text);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('markAsRead')
+  async markAsRead(
+    @Body('conversationId') conversationId: number,
+    @Body('messageId') messageId: number,
+    @CurrentUser() user: AuthUser,
+  ): Promise<void> {
+    return this.messagesService.markAsRead(conversationId, user.id, messageId);
   }
 }
