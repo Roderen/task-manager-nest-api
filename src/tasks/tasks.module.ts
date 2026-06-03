@@ -9,6 +9,7 @@ import { TaskGateway } from './tasks.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConversationMember } from '../messages/entities/conversation-member.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ConversationMember } from '../messages/entities/conversation-member.ent
     }),
   ],
   controllers: [TasksController],
-  providers: [TasksService, TaskGateway],
+  providers: [TasksService, TaskGateway, UsersService],
   exports: [TaskGateway],
 })
 export class TasksModule {}

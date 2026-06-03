@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Task } from './task.entity';
 import { RedisService } from '../redis/redis.service';
 import { TaskGateway } from './tasks.gateway';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class TasksService {
@@ -11,7 +17,10 @@ export class TasksService {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
     private redisService: RedisService,
+    @Inject(forwardRef(() => TaskGateway))
     private taskGateway: TaskGateway,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async findAll(
@@ -131,5 +140,9 @@ export class TasksService {
     return this.tasksRepository.findOne({
       where: { id, user: { id: userId } },
     });
+  }
+
+  updateOnlineStatus(userId: number, status: boolean) {
+    return this.usersRepository.update(userId, { onlineStatus: status });
   }
 }
