@@ -10,6 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Not, Repository } from 'typeorm';
 import { ConversationMember } from '../messages/entities/conversation-member.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { TasksService } from './tasks.service';
+import { forwardRef, Inject } from '@nestjs/common';
 
 interface JwtPayload {
   id: number;
@@ -37,6 +39,8 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private jwtService: JwtService,
     @InjectRepository(ConversationMember)
     private conversationMemberRepository: Repository<ConversationMember>,
+    @Inject(forwardRef(() => TasksService))
+    private taskService: TasksService,
   ) {}
 
   @WebSocketServer()
@@ -57,13 +61,19 @@ export class TaskGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const payload = this.jwtService.verify<JwtPayload>(token);
       client.data.user = payload;
       await client.join(`user:${payload.id}`);
+      await this.taskService.updateOnlineStatus(payload.id, true);
+      this.server.emit('userOnline', { userId: payload.id });
       console.log(`Client connected: ${client.id}, user: ${payload.id}`);
     } catch {
       client.disconnect();
     }
   }
 
-  handleDisconnect(client: AuthSocket) {
+  async handleDisconnect(client: AuthSocket) {
+    const userId = client.data.user.id;
+    await this.taskService.updateOnlineStatus(userId, false);
+    this.server.emit('userOffline', { userId });
+
     console.log(
       `Client disconnected: ${client.id}, user: ${client.data.user.id}`,
     );

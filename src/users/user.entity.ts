@@ -33,4 +33,3 @@ export class User {
   @Column({ nullable: true })
   lastSeen: Date;
 }
-
