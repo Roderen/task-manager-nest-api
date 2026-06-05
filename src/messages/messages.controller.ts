@@ -14,12 +14,16 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/common/decorators/current-user.decorator';
 import { CursorPaginationDto } from './dto/cursor-pagination.dto';
+import { ApiParam } from '@nestjs/swagger';
+import { SendMessageDto } from './dto/send-message.dto';
+import { MarkAsReadDto } from './dto/mark-as-read.dto';
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ApiParam({ name: 'receiverId', type: Number })
   @Post('conversation')
   createConversation(
     @Body() body: { receiverId: number },
@@ -31,7 +35,7 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @Post('conversationSendMessage')
   createConversationSendMessage(
-    @Body() body: { conversationId: number; text: string },
+    @Body() body: SendMessageDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.messagesService.sendMessage(
@@ -71,6 +75,7 @@ export class MessagesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiParam({ name: 'text', type: String })
   @Put('editConversationMessage/:messageId')
   editConversationMessage(
     @Param('messageId') messageId: number,
@@ -83,8 +88,7 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @Post('markAsRead')
   async markAsRead(
-    @Body('conversationId') conversationId: number,
-    @Body('messageId') messageId: number,
+    @Body() { conversationId, messageId }: MarkAsReadDto,
     @CurrentUser() user: AuthUser,
   ): Promise<void> {
     return this.messagesService.markAsRead(conversationId, user.id, messageId);
