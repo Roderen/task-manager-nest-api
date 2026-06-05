@@ -17,6 +17,8 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/common/decorators/current-user.decorator';
+import { GetTasksDto } from './dto/get-tasks.dto';
+import { HelpTasksDto } from './dto/help-tasks.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -26,27 +28,20 @@ export class TasksController {
   @ApiBearerAuth('JWT')
   @Get()
   getTasks(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('completed') completed: string,
+    @Query() { page, limit, completed }: GetTasksDto,
     @CurrentUser() user: AuthUser,
   ) {
-    const completedBool =
-      completed === 'true' ? true : completed === 'false' ? false : undefined;
     return this.tasksService.findAll(
       user.id,
       Number(page),
       Number(limit),
-      completedBool,
+      completed,
     );
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('help')
-  getNeedsHelpTasks(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-  ) {
+  getNeedsHelpTasks(@Query() { page, limit }: HelpTasksDto) {
     return this.tasksService.findAllNeedsHelp(Number(page), Number(limit));
   }
 
@@ -73,11 +68,13 @@ export class TasksController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  updateTask(
+  async updateTask(
     @Param('id') id: string,
     @Body() body: UpdateTaskDto,
     @CurrentUser() user: AuthUser,
   ) {
+    const task = await this.tasksService.findOne(Number(id), user.id);
+    if (!task) throw new NotFoundException('Task not found');
     return this.tasksService.update(
       Number(id),
       user.id,
