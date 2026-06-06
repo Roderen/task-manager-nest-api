@@ -9,9 +9,16 @@ import { RedisModule } from '../redis/redis.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { MessagesModule } from '../messages/messages.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -46,4 +53,3 @@ import { MessagesModule } from '../messages/messages.module';
   providers: [AppService],
 })
 export class AppModule {}
-
