@@ -28,21 +28,30 @@ export class TasksService {
     page: number = 1,
     limit: number = 10,
     completed?: boolean,
+    search?: string,
   ) {
-    const cacheKey = `tasks_user_${userId}_page_${page}_limit_${limit}_completed_${completed}`;
-
+    const cacheKey = `tasks_user_${userId}_page_${page}_limit_${limit}_completed_${completed}_search_${search ?? ''}`;
     const cached = await this.redisService.get(cacheKey);
     if (cached) return cached;
 
-    const where: FindOptionsWhere<Task> = { user: { id: userId } };
-    if (completed !== undefined) where.completed = completed;
+    const queryBuilder = this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.userId = :userId', { userId })
+      .orderBy('task.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
 
-    const [tasks, total] = await this.tasksRepository.findAndCount({
-      where,
-      take: limit,
-      skip: (page - 1) * limit,
-      order: { createdAt: 'DESC' },
-    });
+    if (completed !== undefined) {
+      queryBuilder.andWhere('task.completed = :completed', { completed });
+    }
+
+    if (search) {
+      queryBuilder.andWhere('task.title ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    const [tasks, total] = await queryBuilder.getManyAndCount();
 
     const result = {
       data: tasks,

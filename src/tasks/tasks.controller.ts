@@ -28,7 +28,7 @@ export class TasksController {
   @ApiBearerAuth('JWT')
   @Get()
   getTasks(
-    @Query() { page, limit, completed }: GetTasksDto,
+    @Query() { page, limit, completed, search }: GetTasksDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.tasksService.findAll(
@@ -36,6 +36,7 @@ export class TasksController {
       Number(page),
       Number(limit),
       completed,
+      search,
     );
   }
 

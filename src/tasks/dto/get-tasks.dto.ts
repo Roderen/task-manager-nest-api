@@ -1,6 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsOptional, IsBoolean, IsInt, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsBoolean,
+  IsInt,
+  Min,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class GetTasksDto {
   @ApiProperty({ example: false })
@@ -20,4 +27,10 @@ export class GetTasksDto {
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  search?: string;
 }
