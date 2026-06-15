@@ -15,6 +15,9 @@ export class Task {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  description: string;
+
   @Column({ default: false })
   completed: boolean;
 

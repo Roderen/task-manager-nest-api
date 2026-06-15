@@ -64,7 +64,12 @@ export class TasksController {
   @UseGuards(JwtAuthGuard)
   @Post()
   createTask(@Body() body: CreateTaskDto, @CurrentUser() user: AuthUser) {
-    return this.tasksService.create(body.title, user.id, body.needsHelp);
+    return this.tasksService.create(
+      user.id,
+      body.title,
+      body.description,
+      body.needsHelp,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

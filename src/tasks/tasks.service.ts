@@ -36,6 +36,8 @@ export class TasksService {
 
     const queryBuilder = this.tasksRepository
       .createQueryBuilder('task')
+      .leftJoin('task.user', 'user')
+      .addSelect('user.email')
       .where('task.userId = :userId', { userId })
       .orderBy('task.createdAt', 'DESC')
       .skip((page - 1) * limit)
@@ -96,9 +98,15 @@ export class TasksService {
     return { total, completed, uncompleted: total - completed };
   }
 
-  async create(title: string, userId: number, needsHelp?: boolean) {
+  async create(
+    userId: number,
+    title: string,
+    description?: string,
+    needsHelp?: boolean,
+  ) {
     const task = this.tasksRepository.create({
       title,
+      description,
       needsHelp,
       user: { id: userId },
     });
