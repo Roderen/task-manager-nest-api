@@ -68,12 +68,12 @@ export class TasksService {
   }
 
   async findAllNeedsHelp(page: number = 1, limit: number = 1) {
-    const where: FindOptionsWhere<Task> = {
-      needsHelp: true,
-    };
-
     const [tasks, total] = await this.tasksRepository.findAndCount({
-      where,
+      where: { needsHelp: true },
+      relations: { user: true },
+      select: {
+        user: { email: true },
+      },
       take: limit,
       skip: (page - 1) * limit,
       order: { createdAt: 'DESC' },
